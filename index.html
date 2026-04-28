@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ephantus Macharia</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: #020817;
+        color: #e2e8f0;
+        font-family: "Courier New", monospace;
+        overflow-x: hidden;
+      }
+
+      /* The 3D canvas sits behind everything in the hero */
+      #hero-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+
+      #hero {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        overflow: hidden;
+      }
+
+      /* Text sits on top of the canvas */
+      #hero-text {
+        position: relative;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .hero-name {
+        font-size: clamp(2rem, 6vw, 4.5rem);
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #f8fafc;
+        text-shadow: 0 0 40px rgba(99, 179, 237, 0.4);
+        font-family: "Courier New", monospace;
+      }
+
+      .hero-name span {
+        color: #63b3ed; /* cyan accent */
+      }
+
+      .hero-tagline {
+        margin-top: 1.2rem;
+        font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+        color: #94a3b8;
+        letter-spacing: 0.08em;
+        max-width: 600px;
+        line-height: 1.7;
+      }
+
+      .hero-tagline em {
+        color: #7dd3fc;
+        font-style: normal;
+      }
+
+      .scroll-hint {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        color: #475569;
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* Subtle grid overlay — gives the cyberpunk floor feel */
+      #hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(99, 179, 237, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(99, 179, 237, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* Vignette — darkens edges so the 3D object pops */
+      #hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at center,
+          transparent 40%,
+          rgba(2, 8, 23, 0.85) 100%
+        );
+        z-index: 2;
+        pointer-events: none;
+      }
+      /* ============================================================
+       NAVBAR
+        ============================================================ */
+      #navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 100;
+        padding: 1.2rem 2rem;
+        transition:
+          background 0.4s ease,
+          backdrop-filter 0.4s ease;
+      }
+
+      /* Navbar becomes visible with a blur background on scroll */
+      #navbar.scrolled {
+        background: rgba(2, 8, 23, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(99, 179, 237, 0.1);
+      }
+
+      .nav-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .nav-logo {
+        font-family: "Courier New", monospace;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #f8fafc;
+        letter-spacing: 0.05em;
+      }
+
+      .nav-logo-dot {
+        color: #63b3ed;
+      }
+
+      .nav-links {
+        list-style: none;
+        display: flex;
+        gap: 2.5rem;
+      }
+
+      .nav-links a {
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.85rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        transition: color 0.2s;
+        font-family: "Courier New", monospace;
+      }
+
+      .nav-links a:hover {
+        color: #7dd3fc;
+      }
+
+      /* ============================================================
+       GLOBAL SECTION LAYOUT
+        ============================================================ */
+      .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 5rem 2rem;
+      }
+
+      section {
+        position: relative;
+        z-index: 5;
+      }
+
+      .section-title {
+        font-size: clamp(1.6rem, 4vw, 2.2rem);
+        font-weight: 700;
+        font-family: "Courier New", monospace;
+        color: #e2e8f0;
+        margin-bottom: 3rem;
+        text-align: center;
+        letter-spacing: 0.05em;
+      }
+
+      .section-title::after {
+        content: "";
+        display: block;
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, #63b3ed, #7c3aed);
+        margin: 0.8rem auto 0;
+        border-radius: 4px;
+      }
+
+      /* ============================================================
+       SERVICES
+        ============================================================ */
+      .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .service-card {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(99, 179, 237, 0.15);
+        border-radius: 20px;
+        padding: 2rem 1.5rem;
+        transition:
+          transform 0.3s ease,
+          border-color 0.3s ease,
+          box-shadow 0.3s ease;
+        cursor: default;
+      }
+
+      .service-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(99, 179, 237, 0.4);
+        box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.5);
+      }
+
+      .service-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .service-card h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        font-family: "Courier New", monospace;
+        color: #bfdbfe;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.04em;
+      }
+
+      .service-card p {
+        color: #64748b;
+        line-height: 1.7;
+        font-size: 0.9rem;
+      }
+
+      /* ============================================================
+       WORK
+        ============================================================ */
+      .work-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+      }
+
+      .work-card {
+        background: rgba(10, 15, 31, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(45, 74, 110, 0.6);
+        border-radius: 20px;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        transition: border-color 0.3s ease;
+      }
+
+      .work-card:hover {
+        border-color: rgba(99, 179, 237, 0.35);
+      }
+
+      .work-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .work-tag {
+        font-size: 0.7rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #475569;
+        font-family: "Courier New", monospace;
+      }
+
+      .status-badge {
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        font-family: "Courier New", monospace;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+      }
+
+      .status-badge.deploying {
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+      }
+
+      .status-badge.live {
+        color: #34d399;
+        background: rgba(52, 211, 153, 0.1);
+        border: 1px solid rgba(52, 211, 153, 0.2);
+      }
+
+      .work-card h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        font-family: "Courier New", monospace;
+        color: #e2e8f0;
+      }
+
+      .work-card p {
+        color: #64748b;
+        line-height: 1.7;
+        font-size: 0.9rem;
+      }
+
+      .work-note {
+        color: #475569 !important;
+        font-size: 0.8rem !important;
+        font-style: italic;
+      }
+
+      .work-cta {
+        display: inline-block;
+        color: #7dd3fc;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-family: "Courier New", monospace;
+        letter-spacing: 0.05em;
+        border-bottom: 1px dashed rgba(125, 211, 252, 0.4);
+        padding-bottom: 2px;
+        transition:
+          color 0.2s,
+          border-color 0.2s;
+        margin-top: auto;
+      }
+
+      .work-cta:hover {
+        color: #bae6fd;
+        border-color: rgba(186, 230, 253, 0.6);
+      }
+
+      /* ============================================================
+       TERMINAL (sandbox demo — wired up next phase)
+        ============================================================ */
+      #terminal {
+        background: #010409;
+        border: 1px solid rgba(99, 179, 237, 0.2);
+        border-radius: 12px;
+        padding: 1rem;
+        font-family: "Courier New", monospace;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+      }
+
+      #terminal-output {
+        color: #94a3b8;
+        line-height: 1.8;
+        min-height: 80px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-bottom: 0.8rem;
+      }
+
+      .t-system {
+        color: #63b3ed;
+      }
+      .t-dim {
+        color: #475569;
+      }
+      .t-success {
+        color: #34d399;
+      }
+      .t-error {
+        color: #f87171;
+      }
+      .t-prompt {
+        color: #7c3aed;
+      }
+
+      #terminal-input-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        border-top: 1px solid rgba(99, 179, 237, 0.1);
+        padding-top: 0.7rem;
+      }
+
+      #terminal-input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #e2e8f0;
+        font-family: "Courier New", monospace;
+        font-size: 0.8rem;
+        flex: 1;
+        caret-color: #63b3ed;
+      }
+
+      /* ============================================================
+       CONTACT
+        ============================================================ */
+      .contact-container {
+        max-width: 640px;
+        margin: 0 auto;
+        background: rgba(3, 7, 24, 0.65);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(99, 179, 237, 0.2);
+        border-radius: 20px;
+        padding: 2.5rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.2rem;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 1.2rem 1.4rem;
+        background: rgba(11, 17, 32, 0.8);
+        border: 1px solid rgba(45, 58, 90, 0.8);
+        border-radius: 12px;
+        color: #f1f5f9;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        resize: vertical;
+      }
+
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #63b3ed;
+        box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.12);
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: #334155;
+      }
+
+      button[type="submit"] {
+        width: 100%;
+        padding: 0.9rem;
+        background: linear-gradient(105deg, #1e3a5f, #2d4a6e);
+        border: 1px solid rgba(99, 179, 237, 0.2);
+        border-radius: 12px;
+        color: #e2e8f0;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+      }
+
+      button[type="submit"]:hover {
+        background: linear-gradient(105deg, #2d4a6e, #3a6390);
+        transform: translateY(-1px);
+      }
+
+      #form-status {
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.85rem;
+        font-family: "Courier New", monospace;
+        min-height: 1.2rem;
+      }
+
+      .contact-note {
+        text-align: center;
+        margin-top: 1.2rem;
+        font-size: 0.75rem;
+        color: #334155;
+        font-family: "Courier New", monospace;
+        letter-spacing: 0.06em;
+      }
+
+      /* ============================================================
+       FOOTER
+        ============================================================ */
+      footer {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        border-top: 1px solid rgba(19, 34, 55, 0.8);
+        margin-top: 2rem;
+      }
+
+      footer p {
+        color: #334155;
+        font-size: 0.8rem;
+        font-family: "Courier New", monospace;
+        letter-spacing: 0.1em;
+      }
+
+      .footer-sep {
+        color: #63b3ed;
+        margin: 0 0.5rem;
+      }
+
+      .footer-sub {
+        margin-top: 0.4rem;
+        color: #1e293b !important;
+        font-size: 0.7rem !important;
+      }
+
+      /* ============================================================
+           GSAP REVEAL (start hidden, animate in on scroll)
+        ============================================================ */
+      .gsap-reveal {
+        opacity: 0;
+        transform: translateY(28px);
+      }
+
+      /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+      @media (max-width: 640px) {
+        .container {
+          padding: 3rem 1rem;
+        }
+        .nav-links {
+          gap: 1.5rem;
+        }
+        .contact-container {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ============================================================
+     NAVBAR
+        ============================================================ -->
+
+    <nav id="navbar">
+      <div class="nav-inner">
+        <span class="nav-logo">EM<span class="nav-logo-dot">.</span></span>
+        <ul class="nav-links">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#work">Work</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- ============================================================
+       HERO SECTION
+  ============================================================ -->
+    <section id="hero">
+      <canvas id="hero-canvas"></canvas>
+
+      <div id="hero-text">
+        <h1 class="hero-name">Ephantus <span>Macharia</span></h1>
+        <p class="hero-tagline">
+          <em>Behind every smooth system —</em><br />
+          someone had to build it right.
+        </p>
+      </div>
+
+      <div class="scroll-hint">scroll to explore</div>
+    </section>
+
+    <!-- ============================================================
+     SERVICES SECTION
+    ============================================================ -->
+    <section id="services">
+      <div class="container">
+        <h2 class="section-title gsap-reveal">/ what I deliver</h2>
+        <div class="services-grid">
+          <div class="service-card gsap-reveal">
+            <div class="service-icon">🌐</div>
+            <h3>Web Presence</h3>
+            <p>
+              Websites built to perform — responsive, fast, and shaped around
+              your goals. Not templates. Actual craft.
+            </p>
+          </div>
+
+          <div class="service-card gsap-reveal">
+            <div class="service-icon">🐍</div>
+            <h3>Python Automation</h3>
+            <p>
+              Repetitive tasks are expensive. Scripts, pipelines, and
+              integrations that run so you don't have to.
+            </p>
+          </div>
+
+          <div class="service-card gsap-reveal">
+            <div class="service-icon">🐧</div>
+            <h3>Linux Optimization</h3>
+            <p>
+              Servers that stay lean, secure, and predictable. Performance
+              tuning, hardening, and monitoring — done properly.
+            </p>
+          </div>
+
+          <div class="service-card gsap-reveal">
+            <div class="service-icon">📄</div>
+            <h3>Technical Docs</h3>
+            <p>
+              Documentation your team will actually open. Clear, structured, and
+              written for humans — not just machines.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+     WORK SECTION
+    ============================================================ -->
+    <section id="work">
+      <div class="container">
+        <h2 class="section-title gsap-reveal">/ work</h2>
+        <div class="work-grid">
+          <!-- Your one real project — handled with honesty and confidence -->
+          <div class="work-card gsap-reveal">
+            <div class="work-card-header">
+              <span class="work-tag">Web Development</span>
+              <span class="status-badge deploying">⬤ Deploying</span>
+            </div>
+            <h3>Industry Platform</h3>
+            <p>
+              A full web solution built for an industry partner — covering
+              architecture, custom functionality, and deployment. The kind of
+              project where every decision has a reason.
+            </p>
+            <p class="work-note">
+              Live URL available once the client completes server setup. Preview
+              and full breakdown available on request.
+            </p>
+            <a href="#contact" class="work-cta">Request a preview →</a>
+          </div>
+
+          <!-- Sandbox card — we'll wire this up with Pyodide next phase -->
+          <div class="work-card gsap-reveal" id="sandbox-card">
+            <div class="work-card-header">
+              <span class="work-tag">Live Demo</span>
+              <span class="status-badge live">⬤ Live</span>
+            </div>
+            <h3>Python Sandbox</h3>
+            <p>
+              A live environment running real Python in your browser. No server.
+              No installs. Type a command, see it execute.
+            </p>
+            <!-- Terminal UI — we wire this up next phase -->
+            <div id="terminal">
+              <div id="terminal-output">
+                <span class="t-system">Ephantus OS // Python 3.11 ready</span
+                ><br />
+                <span class="t-dim">Type a command below and press Enter.</span
+                ><br />
+                <span class="t-dim"
+                  >Try: <em>help</em> &nbsp;|&nbsp;
+                  <em>sysinfo</em> &nbsp;|&nbsp; <em>automate</em></span
+                >
+              </div>
+              <div id="terminal-input-row">
+                <span class="t-prompt">~/sandbox $</span>
+                <input
+                  id="terminal-input"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="enter command..."
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+     CONTACT SECTION
+    ============================================================ -->
+    <section id="contact">
+      <div class="container">
+        <h2 class="section-title gsap-reveal">/ let's build something</h2>
+        <div class="contact-container gsap-reveal">
+          <form id="contact-form">
+            <div class="form-group">
+              <input type="text" name="name" placeholder="your name" required />
+            </div>
+            <div class="form-group">
+              <input
+                type="email"
+                name="email"
+                placeholder="email address"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <textarea
+                name="message"
+                rows="4"
+                placeholder="tell me what you're building..."
+              ></textarea>
+            </div>
+            <button type="submit">send message →</button>
+            <div id="form-status"></div>
+          </form>
+          <p class="contact-note">
+            messages go straight to my inbox — I reply within 24h
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+     FOOTER
+    ============================================================ -->
+    <footer>
+      <p>
+        Ephantus Macharia
+        <span class="footer-sep">//</span>
+        precision &nbsp;·&nbsp; automation &nbsp;·&nbsp; clarity
+      </p>
+      <p class="footer-sub">available for freelance</p>
+    </footer>
+
+    <!-- ============================================================
+       THREE.JS — 3D HERO OBJECT
+       Read this section carefully — every part is commented.
+      ============================================================ -->
+    <script>
+      // ── 1. SCENE SETUP ──────────────────────────────────────────
+      // A "scene" is the 3D world. Everything lives inside it.
+      const scene = new THREE.Scene();
+
+      // The camera is your eye into the scene.
+      // PerspectiveCamera(fov, aspect ratio, near clip, far clip)
+      const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+      camera.position.z = 4; // pull the camera back so we can see the object
+
+      // The renderer draws the scene onto the canvas element.
+      const canvas = document.getElementById("hero-canvas");
+      const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true, // smooth edges
+        alpha: true, // transparent background (our CSS bg shows through)
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      // ── 2. LIGHTING ─────────────────────────────────────────────
+      // Ambient light = soft global illumination (no shadow, no direction)
+      const ambientLight = new THREE.AmbientLight(0x0a1628, 2);
+      scene.add(ambientLight);
+
+      // Point lights = like light bulbs, cast in all directions from a point
+      // Cyan light from the top-right
+      const cyanLight = new THREE.PointLight(0x63b3ed, 6, 20);
+      cyanLight.position.set(3, 3, 3);
+      scene.add(cyanLight);
+
+      // Purple accent light from the bottom-left (cyberpunk feel)
+      const purpleLight = new THREE.PointLight(0x7c3aed, 4, 20);
+      purpleLight.position.set(-3, -2, 2);
+      scene.add(purpleLight);
+
+      // Subtle white fill from behind
+      const backLight = new THREE.PointLight(0xffffff, 1, 20);
+      backLight.position.set(0, 0, -4);
+      scene.add(backLight);
+
+      // ── 3. THE CORE OBJECT ──────────────────────────────────────
+      // An icosahedron = a 20-faced crystal-like shape.
+      // IcosahedronGeometry(radius, detail)
+      // detail 0 = sharp low-poly, detail 1 = slightly smoother
+      const coreGeometry = new THREE.IcosahedronGeometry(1, 0);
+
+      // MeshStandardMaterial reacts to light (looks 3D, not flat)
+      const coreMaterial = new THREE.MeshStandardMaterial({
+        color: 0x0f172a, // very dark base color
+        emissive: 0x1e3a5f, // subtle self-glow (blue-ish)
+        emissiveIntensity: 0.4,
+        metalness: 0.9,
+        roughness: 0.2,
+        wireframe: false,
+      });
+
+      const core = new THREE.Mesh(coreGeometry, coreMaterial);
+      scene.add(core);
+
+      // Wireframe shell over the core — gives the "circuit grid" look
+      const wireGeometry = new THREE.IcosahedronGeometry(1.02, 0);
+      const wireMaterial = new THREE.MeshBasicMaterial({
+        color: 0x63b3ed, // cyan
+        wireframe: true,
+        transparent: true,
+        opacity: 0.15,
+      });
+      const wireShell = new THREE.Mesh(wireGeometry, wireMaterial);
+      scene.add(wireShell);
+
+      // ── 4. ORBITING RINGS ───────────────────────────────────────
+      // TorusGeometry(radius, tube thickness, radial segments, tubular segments)
+      function makeRing(radius, color, rotX, rotZ) {
+        const geo = new THREE.TorusGeometry(radius, 0.008, 8, 80);
+        const mat = new THREE.MeshBasicMaterial({
+          color: color,
+          transparent: true,
+          opacity: 0.5,
+        });
+        const ring = new THREE.Mesh(geo, mat);
+        ring.rotation.x = rotX;
+        ring.rotation.z = rotZ;
+        scene.add(ring);
+        return ring;
+      }
+
+      const ring1 = makeRing(1.6, 0x63b3ed, Math.PI / 2, 0); // horizontal
+      const ring2 = makeRing(1.8, 0x7c3aed, Math.PI / 4, Math.PI / 6); // tilted
+      const ring3 = makeRing(2.0, 0x0ea5e9, 0, Math.PI / 3); // vertical-ish
+
+      // ── 5. FLOATING PARTICLES ───────────────────────────────────
+      // Small dots scattered in a sphere around the core
+      const particleCount = 180;
+      const particleGeo = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3); // x,y,z per particle
+
+      for (let i = 0; i < particleCount; i++) {
+        // Random point on a sphere shell between radius 2.5 and 4.5
+        const radius = 2.5 + Math.random() * 2;
+        const theta = Math.random() * Math.PI * 2; // horizontal angle
+        const phi = Math.acos(2 * Math.random() - 1); // vertical angle
+
+        positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta); // x
+        positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta); // y
+        positions[i * 3 + 2] = radius * Math.cos(phi); // z
+      }
+
+      particleGeo.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3),
+      );
+
+      const particleMat = new THREE.PointsMaterial({
+        color: 0x7dd3fc,
+        size: 0.025,
+        transparent: true,
+        opacity: 0.7,
+      });
+
+      const particles = new THREE.Points(particleGeo, particleMat);
+      scene.add(particles);
+
+      // ── 6. ANIMATION LOOP ───────────────────────────────────────
+      // Three.js calls this function ~60 times per second.
+      // Each call updates positions/rotations and redraws the scene.
+      let time = 0;
+
+      function animate() {
+        requestAnimationFrame(animate); // schedule next frame
+        time += 0.005;
+
+        // Rotate the core slowly on two axes (gives a tumbling feel)
+        core.rotation.x += 0.003;
+        core.rotation.y += 0.005;
+
+        // Wireframe shell rotates slightly differently = shimmering effect
+        wireShell.rotation.x += 0.002;
+        wireShell.rotation.y += 0.006;
+
+        // Rings orbit at different speeds
+        ring1.rotation.z += 0.004;
+        ring2.rotation.x += 0.003;
+        ring2.rotation.z -= 0.002;
+        ring3.rotation.y += 0.005;
+
+        // Particles drift very slowly
+        particles.rotation.y += 0.0008;
+        particles.rotation.x += 0.0003;
+
+        // Lights pulse gently — makes it feel alive
+        cyanLight.intensity = 5 + Math.sin(time * 1.5) * 2;
+        purpleLight.intensity = 3 + Math.cos(time * 1.2) * 1.5;
+
+        renderer.render(scene, camera);
+      }
+
+      animate(); // start the loop
+
+      // ── 7. RESPONSIVE RESIZE ────────────────────────────────────
+      // When the browser window resizes, update camera and renderer
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // ── 8. SUBTLE MOUSE PARALLAX ────────────────────────────────
+      // The object tilts very slightly toward your cursor.
+      // Feels interactive without being distracting.
+      let mouseX = 0,
+        mouseY = 0;
+
+      window.addEventListener("mousemove", (e) => {
+        // Normalize to -1 → +1 range
+        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+      });
+
+      // We apply this in the animate loop smoothly
+      // (We'll add lerp smoothing in the next phase)
+    </script>
+    <script>
+      // ── NAVBAR: adds .scrolled class once user scrolls past the hero
+      window.addEventListener("scroll", () => {
+        const navbar = document.getElementById("navbar");
+        if (window.scrollY > 60) {
+          navbar.classList.add("scrolled");
+        } else {
+          navbar.classList.remove("scrolled");
+        }
+      });
+
+      // ── GSAP SCROLL REVEAL
+      gsap.registerPlugin(ScrollTrigger);
+
+      document.querySelectorAll(".gsap-reveal").forEach((el) => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 88%",
+            toggleActions: "play none none reverse",
+          },
+        });
+      });
+
+      // Service cards stagger in together
+      gsap.fromTo(
+        ".service-card",
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.12,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#services",
+            start: "top 80%",
+          },
+        },
+      );
+
+      // ── CONTACT FORM (we'll connect to FastAPI backend next phase)
+      // For now it logs to console so you can verify it works
+      const form = document.getElementById("contact-form");
+      const statusDiv = document.getElementById("form-status");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        statusDiv.innerHTML = '<span style="color:#7dd3fc;">sending...</span>';
+
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch("http://localhost:8001/contact", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.ok) {
+            statusDiv.innerHTML =
+              '<span style="color:#34d399;">✓ Message received — I\'ll reply within 24h.</span>';
+            form.reset();
+            setTimeout(() => (statusDiv.innerHTML = ""), 5000);
+          } else {
+            statusDiv.innerHTML = `<span style="color:#f87171;">⚠️ ${data.error}</span>`;
+          }
+        } catch (err) {
+          statusDiv.innerHTML =
+            '<span style="color:#f87171;">⚠️ Could not reach server. Try again.</span>';
+        }
+      });
+
+      // ── TERMINAL
+      const terminalInput = document.getElementById("terminal-input");
+      const terminalOutput = document.getElementById("terminal-output");
+
+      // How long to wait between printing each line (milliseconds)
+      const LINE_DELAY = 120;
+
+      // Clears the output area
+      function clearOutput() {
+        terminalOutput.innerHTML = "";
+      }
+
+      // Scrolls the terminal to the bottom after each print
+      function scrollBottom() {
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+      }
+
+      // Prints a single HTML line and scrolls down
+      function printLine(html) {
+        terminalOutput.innerHTML += html + "<br/>";
+        scrollBottom();
+      }
+
+      // Prints an array of lines one by one, each after a delay.
+      // Returns a Promise so we can await it if needed.
+      function printLines(lines) {
+        return new Promise((resolve) => {
+          let i = 0;
+          function next() {
+            if (i >= lines.length) {
+              resolve();
+              return;
+            }
+            printLine(lines[i]);
+            i++;
+            setTimeout(next, LINE_DELAY);
+          }
+          next();
+        });
+      }
+
+      // Disables the input while a command is running
+      // so the visitor can't spam commands mid-output
+      function setInputLocked(locked) {
+        terminalInput.disabled = locked;
+        terminalInput.style.opacity = locked ? "0.3" : "1";
+      }
+
+      // ── COMMAND DEFINITIONS
+      // Each command is an array of HTML strings, printed line by line.
+      const commands = {
+        help: [
+          `<span class="t-system">// available commands</span>`,
+          `<span class="t-dim">─────────────────────────────────</span>`,
+          `<span class="t-dim">  sysinfo &nbsp;&nbsp; → system health snapshot</span>`,
+          `<span class="t-dim">  automate &nbsp; → sample automation run</span>`,
+          `<span class="t-dim">  whoami &nbsp;&nbsp;&nbsp; → who built this</span>`,
+          `<span class="t-dim">  clear &nbsp;&nbsp;&nbsp;&nbsp; → clear terminal</span>`,
+          `<span class="t-dim">─────────────────────────────────</span>`,
+        ],
+
+        sysinfo: [
+          `<span class="t-system">$ python3 sysinfo.py --full</span>`,
+          `<span class="t-dim">Collecting system metrics...</span>`,
+          `<span class="t-dim">&nbsp;</span>`,
+          `<span class="t-success">  CPU &nbsp;&nbsp;&nbsp;&nbsp; 11.2% &nbsp;&nbsp; [████░░░░░░]</span>`,
+          `<span class="t-success">  MEMORY &nbsp; 2.4 / 8.0 GB &nbsp; [███░░░░░░░]</span>`,
+          `<span class="t-success">  DISK &nbsp;&nbsp;&nbsp; 48% used &nbsp;&nbsp; [████░░░░░░]</span>`,
+          `<span class="t-success">  UPTIME &nbsp; 14d 6h 22m</span>`,
+          `<span class="t-success">  LOAD &nbsp;&nbsp;&nbsp; 0.42, 0.38, 0.31</span>`,
+          `<span class="t-dim">&nbsp;</span>`,
+          `<span class="t-dim">✓ All systems nominal. No alerts.</span>`,
+        ],
+
+        automate: [
+          `<span class="t-system">$ python3 automate.py --run --verbose</span>`,
+          `<span class="t-dim">Initializing task runner...</span>`,
+          `<span class="t-dim">→ Scanning target directory... done</span>`,
+          `<span class="t-dim">→ Parsing 142 files... done</span>`,
+          `<span class="t-dim">→ Deduplicating records... done</span>`,
+          `<span class="t-dim">→ Applying transformation rules... done</span>`,
+          `<span class="t-dim">→ Writing output... done</span>`,
+          `<span class="t-dim">&nbsp;</span>`,
+          `<span class="t-success">✓ 38 tasks completed in 0.4s</span>`,
+          `<span class="t-dim">  Output → /reports/run_2026.csv</span>`,
+          `<span class="t-dim">  Errors → 0 &nbsp;|&nbsp; Warnings → 0</span>`,
+        ],
+
+        whoami: [
+          `<span class="t-system">$ whoami --verbose</span>`,
+          `<span class="t-dim">&nbsp;</span>`,
+          `<span class="t-success">  Ephantus Macharia</span>`,
+          `<span class="t-dim">  ─────────────────────────────</span>`,
+          `<span class="t-dim">  Web development &nbsp;&nbsp;&nbsp; ██████████</span>`,
+          `<span class="t-dim">  Python automation &nbsp; ██████████</span>`,
+          `<span class="t-dim">  Linux optimization &nbsp;█████████░</span>`,
+          `<span class="t-dim">  Technical docs &nbsp;&nbsp;&nbsp;&nbsp; ████████░░</span>`,
+          `<span class="t-dim">  ─────────────────────────────</span>`,
+          `<span class="t-dim">  Building systems that don't break at 2am.</span>`,
+        ],
+      };
+
+      // ── BOOT SEQUENCE
+      // Runs once when the page loads — makes the terminal feel alive
+      // before the visitor types anything
+      async function bootSequence() {
+        setInputLocked(true);
+        clearOutput();
+
+        await printLines([
+          `<span class="t-system">Ephantus OS // sandbox environment</span>`,
+          `<span class="t-dim">Initializing Python 3.11 runtime...</span>`,
+          `<span class="t-dim">Loading modules: os, sys, subprocess, pathlib</span>`,
+          `<span class="t-success">✓ Environment ready.</span>`,
+          `<span class="t-dim">&nbsp;</span>`,
+          `<span class="t-dim">Type <em>help</em> to see available commands.</span>`,
+        ]);
+
+        setInputLocked(false);
+        terminalInput.focus();
+      }
+
+      // ── COMMAND HANDLER
+      // Runs when the visitor presses Enter
+      async function handleCommand(raw) {
+        const cmd = raw.trim().toLowerCase();
+        if (!cmd) return;
+
+        // Print the command the visitor typed (like a real terminal)
+        printLine(
+          `<span class="t-prompt">~/sandbox $</span> <span style="color:#e2e8f0;">${cmd}</span>`,
+        );
+
+        setInputLocked(true);
+
+        if (cmd === "clear") {
+          clearOutput();
+          setInputLocked(false);
+          return;
+        }
+
+        if (commands[cmd]) {
+          await printLines(commands[cmd]);
+        } else {
+          await printLines([
+            `<span class="t-error">command not found: ${cmd}</span>`,
+            `<span class="t-dim">Type <em>help</em> to see available commands.</span>`,
+          ]);
+        }
+
+        printLine(`<span class="t-dim">&nbsp;</span>`);
+        setInputLocked(false);
+        terminalInput.focus();
+      }
+
+      // ── EVENT LISTENERS
+      terminalInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const val = terminalInput.value;
+          terminalInput.value = "";
+          handleCommand(val);
+        }
+      });
+
+      // Click anywhere in terminal to focus the input
+      document.getElementById("terminal").addEventListener("click", () => {
+        terminalInput.focus();
+      });
+
+      // Kick off the boot sequence
+      bootSequence();
+    </script>
+  </body>
+</html>
