@@ -15,6 +15,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link rel="apple-touch-icon" href="assets/favicon-512.png" />
+
     <style>
       * {
         margin: 0;
@@ -598,6 +602,10 @@
       footer {
         z-index: 1;
       }
+      .nav-logo-img {
+        height: 36px;
+        width: auto;
+      }
     </style>
   </head>
 
@@ -610,7 +618,11 @@
 
     <nav id="navbar">
       <div class="nav-inner">
-        <span class="nav-logo">EM<span class="nav-logo-dot">.</span></span>
+        <img
+          src="assets/logo.svg"
+          alt="Ephantus Macharia"
+          class="nav-logo-img"
+        />
         <ul class="nav-links">
           <li><a href="#services">Services</a></li>
           <li><a href="#work">Work</a></li>
