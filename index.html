@@ -602,9 +602,58 @@
       footer {
         z-index: 1;
       }
-      .nav-logo-img {
-        height: 36px;
+      .nav-logo-group {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        text-decoration: none;
+      }
+
+      .nav-mark {
+        height: 38px;
         width: auto;
+      }
+
+      .nav-logo-name {
+        font-family: "Courier New", monospace;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #f8fafc;
+        letter-spacing: 0.05em;
+      }
+
+      .nav-logo-dot {
+        color: #63b3ed;
+      }
+      /* ============================================================
+           MOBILE NAV FIX
+        ============================================================ */
+      @media (max-width: 768px) {
+        /* Hide the text name on mobile — mark alone is enough */
+        .nav-logo-name {
+          display: none;
+        }
+
+        /* Shrink nav padding so links don't crowd */
+        #navbar {
+          padding: 0.9rem 1.2rem;
+        }
+
+        /* Tighten gap between nav links */
+        .nav-links {
+          gap: 1.2rem;
+        }
+
+        /* Slightly smaller link text on mobile */
+        .nav-links a {
+          font-size: 0.75rem;
+          letter-spacing: 0.08em;
+        }
+
+        /* Mark stays clean at smaller size */
+        .nav-mark {
+          height: 32px;
+        }
       }
     </style>
   </head>
@@ -618,11 +667,12 @@
 
     <nav id="navbar">
       <div class="nav-inner">
-        <img
-          src="assets/logo.svg"
-          alt="Ephantus Macharia"
-          class="nav-logo-img"
-        />
+        <div class="nav-logo-group">
+          <img src="assets/mark.svg" alt="EM" class="nav-mark" />
+          <span class="nav-logo-name"
+            >Ephantus<span class="nav-logo-dot"> Macharia</span></span
+          >
+        </div>
         <ul class="nav-links">
           <li><a href="#services">Services</a></li>
           <li><a href="#work">Work</a></li>

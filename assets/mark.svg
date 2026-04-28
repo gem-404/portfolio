@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="44 18 112 132" width="112" height="132">
+  <rect x="44" y="18" width="112" height="132" rx="8" fill="#020817"/>
+  <polygon points="100,22 152,52 152,112 100,142 48,112 48,52"
+           fill="#0f172a"/>
+  <polygon points="100,22 152,52 152,112 100,142 48,112 48,52"
+           fill="none" stroke="#63b3ed" stroke-width="3"/>
+  <polygon points="100,36 142,59 142,105 100,128 58,105 58,59"
+           fill="none" stroke="#7c3aed" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- E -->
+  <line x1="64"  y1="70"  x2="64"  y2="116" stroke="#63b3ed" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="64"  y1="70"  x2="88"  y2="70"  stroke="#63b3ed" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="64"  y1="93"  x2="84"  y2="93"  stroke="#63b3ed" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="64"  y1="116" x2="88"  y2="116" stroke="#63b3ed" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- M -->
+  <line x1="96"  y1="116" x2="96"  y2="70"  stroke="#63b3ed" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="96"  y1="70"  x2="114" y2="96"  stroke="#63b3ed" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="114" y1="96"  x2="132" y2="70"  stroke="#63b3ed" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="132" y1="70"  x2="132" y2="116" stroke="#63b3ed" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- vertex dots -->
+  <circle cx="100" cy="22"  r="3.5" fill="#63b3ed"/>
+  <circle cx="152" cy="52"  r="3.5" fill="#7c3aed"/>
+  <circle cx="152" cy="112" r="3.5" fill="#63b3ed"/>
+  <circle cx="100" cy="142" r="3.5" fill="#7c3aed"/>
+  <circle cx="48"  cy="112" r="3.5" fill="#63b3ed"/>
+  <circle cx="48"  cy="52"  r="3.5" fill="#7c3aed"/>
+</svg>
