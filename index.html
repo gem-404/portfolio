@@ -566,10 +566,44 @@
           padding: 1.5rem;
         }
       }
+      /* ============================================================
+           BACKGROUND PARTICLE CANVAS
+        ============================================================ */
+      #bg-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      /* Make sure all sections sit above the background canvas */
+      #navbar {
+        z-index: 100;
+      }
+      #hero {
+        z-index: 1;
+      }
+      #services {
+        z-index: 1;
+      }
+      #work {
+        z-index: 1;
+      }
+      #contact {
+        z-index: 1;
+      }
+      footer {
+        z-index: 1;
+      }
     </style>
   </head>
 
   <body>
+    <canvas id="bg-canvas"></canvas>
+
     <!-- ============================================================
      NAVBAR
         ============================================================ -->
@@ -1204,6 +1238,75 @@
 
       // Kick off the boot sequence
       bootSequence();
+    </script>
+
+    <script>
+      // ── BACKGROUND PARTICLE SYSTEM
+      // A separate Three.js scene that renders only particles,
+      // fixed behind the entire page at low opacity.
+
+      const bgScene = new THREE.Scene();
+      const bgCamera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+      bgCamera.position.z = 4;
+
+      const bgCanvas = document.getElementById("bg-canvas");
+      const bgRenderer = new THREE.WebGLRenderer({
+        canvas: bgCanvas,
+        alpha: true, // transparent so page bg shows through
+        antialias: false, // no need for antialias on particles
+      });
+      bgRenderer.setSize(window.innerWidth, window.innerHeight);
+      bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // ── PARTICLES
+      // Fewer than the hero (120 vs 180) and more spread out
+      const bgParticleCount = 120;
+      const bgGeo = new THREE.BufferGeometry();
+      const bgPositions = new Float32Array(bgParticleCount * 3);
+
+      for (let i = 0; i < bgParticleCount; i++) {
+        // Spread across a wider area so they cover the full page feel
+        bgPositions[i * 3] = (Math.random() - 0.5) * 14; // x
+        bgPositions[i * 3 + 1] = (Math.random() - 0.5) * 14; // y
+        bgPositions[i * 3 + 2] = (Math.random() - 0.5) * 8; // z
+      }
+
+      bgGeo.setAttribute("position", new THREE.BufferAttribute(bgPositions, 3));
+
+      const bgMat = new THREE.PointsMaterial({
+        color: 0x7dd3fc, // same cyan as hero
+        size: 0.022, // slightly smaller than hero particles
+        transparent: true,
+        opacity: 0.25, // dim — stays in the background
+      });
+
+      const bgParticles = new THREE.Points(bgGeo, bgMat);
+      bgScene.add(bgParticles);
+
+      // ── ANIMATION
+      function animateBg() {
+        requestAnimationFrame(animateBg);
+
+        // Very slow drift — barely noticeable, just enough to feel alive
+        bgParticles.rotation.y += 0.0003;
+        bgParticles.rotation.x += 0.0001;
+
+        bgRenderer.render(bgScene, bgCamera);
+      }
+
+      animateBg();
+
+      // ── RESIZE
+      window.addEventListener("resize", () => {
+        bgCamera.aspect = window.innerWidth / window.innerHeight;
+        bgCamera.updateProjectionMatrix();
+        bgRenderer.setSize(window.innerWidth, window.innerHeight);
+      });
     </script>
   </body>
 </html>
