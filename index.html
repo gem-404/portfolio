@@ -655,6 +655,110 @@
           height: 32px;
         }
       }
+
+      /* ============================================================
+       FLOATING ACTION BUTTONS
+        ============================================================ */
+      #fab-container {
+        position: fixed;
+        bottom: 2rem;
+        left: 0;
+        right: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 2rem;
+        pointer-events: none; /* container itself doesn't block clicks */
+        z-index: 200;
+      }
+
+      #fab-whatsapp,
+      #fab-top {
+        pointer-events: all;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition:
+          transform 0.25s ease,
+          box-shadow 0.25s ease,
+          opacity 0.3s ease;
+        border: none;
+        outline: none;
+        text-decoration: none;
+      }
+
+      #fab-whatsapp svg,
+      #fab-top svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      /* WhatsApp button */
+      #fab-whatsapp {
+        background: #0f172a;
+        color: #25d366;
+        border: 1px solid rgba(37, 211, 102, 0.3);
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4);
+        animation: wa-pulse 2.5s infinite;
+      }
+
+      #fab-whatsapp:hover {
+        transform: translateY(-3px) scale(1.08);
+        border-color: rgba(37, 211, 102, 0.7);
+        box-shadow: 0 8px 24px -6px rgba(37, 211, 102, 0.35);
+        animation: none;
+      }
+
+      @keyframes wa-pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.35);
+        }
+        60% {
+          box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+        }
+      }
+
+      /* Back to top button */
+      #fab-top {
+        background: #0f172a;
+        color: #63b3ed;
+        border: 1px solid rgba(99, 179, 237, 0.3);
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+      }
+
+      #fab-top.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+      }
+
+      #fab-top:hover {
+        transform: translateY(-3px) scale(1.08);
+        border-color: rgba(99, 179, 237, 0.7);
+        box-shadow: 0 8px 24px -6px rgba(99, 179, 237, 0.3);
+      }
+
+      @media (max-width: 640px) {
+        #fab-container {
+          bottom: 1.5rem;
+          padding: 0 1.2rem;
+        }
+
+        #fab-whatsapp,
+        #fab-top {
+          width: 44px;
+          height: 44px;
+        }
+      }
     </style>
   </head>
 
@@ -1048,6 +1152,7 @@
       // We apply this in the animate loop smoothly
       // (We'll add lerp smoothing in the next phase)
     </script>
+
     <script>
       // ── NAVBAR: adds .scrolled class once user scrolls past the hero
       window.addEventListener("scroll", () => {
@@ -1369,6 +1474,90 @@
         bgCamera.updateProjectionMatrix();
         bgRenderer.setSize(window.innerWidth, window.innerHeight);
       });
+
+      // ── BACK TO TOP BUTTON
+      // Wrapped in DOMContentLoaded so the element exists before we query it
+      document.addEventListener("DOMContentLoaded", () => {
+        const fabTop = document.getElementById("fab-top");
+
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > window.innerHeight * 0.6) {
+            fabTop.classList.add("visible");
+          } else {
+            fabTop.classList.remove("visible");
+          }
+        });
+      });
+
+      // ── KEEP-ALIVE PING
+      // Pings the backend every 10 minutes so Render never spins down
+      setInterval(
+        () => {
+          fetch("https://ephantus-backend.onrender.com/health").catch(() => {}); // silent — we don't care about the response
+        },
+        10 * 60 * 1000,
+      ); // 10 minutes in milliseconds
     </script>
+
+    <!-- ============================================================
+     FLOATING ACTION BUTTONS
+============================================================ -->
+    <div id="fab-container">
+      <!-- WhatsApp — bottom left -->
+
+      <a
+        id="fab-whatsapp"
+        href="https://wa.me/254757095442"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat on WhatsApp"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15
+               -.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075
+               -.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059
+               -.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52
+               .149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52
+               -.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51
+               -.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372
+               -.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074
+               .149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625
+               .712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413
+               .248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"
+          />
+          <path
+            d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.428
+               a.75.75 0 00.916.916l5.573-1.471A11.943 11.943 0 0012 24
+               c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75
+               a9.696 9.696 0 01-4.953-1.355l-.355-.211-3.678.970.984-3.595
+               -.232-.371A9.696 9.696 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25
+               S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"
+          />
+        </svg>
+      </a>
+
+      <!-- Back to top — bottom right -->
+      <button
+        id="fab-top"
+        aria-label="Back to top"
+        onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="18 15 12 9 6 15" />
+        </svg>
+      </button>
+    </div>
   </body>
 </html>
